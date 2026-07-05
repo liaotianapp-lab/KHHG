@@ -3,112 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的高级个人主页</title>
+    <title>赛博餐厅·智能收银记账系统</title>
     <style>
-        /* 全局去边距，并加入高大上的渐变背景 */
         body {
             margin: 0;
-            padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #ffffff;
+            background: #f0f2f5;
+            color: #333;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* 磨砂玻璃质感卡片 (Glassmorphism) */
-        .profile-container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 24px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        /* 调整头像框的样式 */
-        .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%; /* 保持圆框 */
-            margin: 0 auto 20px;
-            overflow: hidden; /* 让超出圆框的图片部分隐藏 */
-            border: 3px solid rgba(255, 255, 255, 0.2); /* 给圆框加个精美的淡白色边 */
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4); /* 保持发光阴影 */
-        }
-
-        /* 让标签里的图片完美适应这个圆框 */
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* 魔法CSS：按比例填满不拉伸 */
-        }
-
-        h1 {
-            margin: 10px 0;
-            font-size: 28px;
-            background: linear-gradient(45deg, #00f2fe, #4facfe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
-            color: #b0bec5;
-            font-size: 14px;
-            margin-bottom: 30px;
-            letter-spacing: 1px;
-        }
-
-        /* 高级链接按钮列表 */
-        .links-list {
+        /* 左侧主面板：包含添加菜品和菜品列表 */
+        .main-panel {
+            flex: 2;
+            padding: 20px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
-        .link-item {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            text-decoration: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 500;
-            transition: all 0.3s ease; /* 丝滑过渡动画 */
-            border: 1px solid transparent;
+        /* 动态添加菜品表单（后台管理） */
+        .admin-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .admin-box h3 { margin-top: 0; color: #1890ff; }
+        .form-inline { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .form-inline input, .form-inline button {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            outline: none;
+        }
+        .form-inline button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .form-inline button:hover { background: #40a9ff; }
+
+        /* 菜品网格 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .food-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .food-img { width: 100%; height: 130px; object-fit: cover; background: #e8e8e8; }
+        .food-info { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .food-name { font-size: 16px; font-weight: bold; margin: 0 0 5px 0; }
+        .food-price { color: #ff4d4f; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+        .add-btn { background: #52c41a; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .delete-food-btn {
+            position: absolute; top: 5px; right: 5px;
+            background: rgba(255,77,79,0.9); color: white; border: none;
+            border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px;
         }
 
-        /* 鼠标悬停（Hover）或手指点击时的酷炫发光效果 */
-        .link-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-3px); /* 向上微微浮动 */
-            border-color: #00f2fe;
-            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3);
+        /* 右侧收银和历史账单 */
+        .side-panel {
+            flex: 1;
+            background: white;
+            border-left: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 12px rgba(0,0,0,0.02);
         }
+        .panel-section { flex: 1; display: flex; flex-direction: column; min-height: 50%; }
+        .section-header { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; font-size: 18px; font-weight: bold; background: #fafafa; }
+        .list-box { flex: 1; padding: 15px 20px; overflow-y: auto; }
+        
+        .cart-item, .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #f0f0f0;
+            font-size: 14px;
+        }
+        .history-item { border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+        .history-time { color: #888; font-size: 11px; }
+
+        /* 计账尾部 */
+        .cart-footer { padding: 15px 20px; border-top: 1px solid #f0f0f0; background: #fafafa; }
+        .total-price { font-size: 20px; font-weight: bold; color: #ff4d4f; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .checkout-btn { width: 100%; background: #1890ff; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="profile-container">
-        <!-- 💡 核心改动：这里已经帮你直接读取本地的 avatar.jpg 照片了 -->
-        <div class="avatar">
-            <img src="avatar.jpg" alt="我的本地头像">
+    <div class="main-panel">
+        <div class="admin-box">
+            <h3>⚙️ 餐厅后台管理（免代码添加/修改菜品）</h3>
+            <div class="form-inline">
+                <input type="text" id="newFoodName" placeholder="菜品名称 (例如: 黄金炒饭)">
+                <input type="number" id="newFoodPrice" placeholder="价格/元 (例如: 20)">
+                <label style="font-size: 14px; color: #666;">上传图片：</label>
+                <input type="file" id="newFoodImg" accept="image/*">
+                <button onclick="addCustomFood()">🚀 发布新菜品</button>
+            </div>
         </div>
-        
-        <h1>探索者</h1>
-        <div class="subtitle">WEB 前端开发 · 进化中</div>
-        
-        <div class="links-list">
-            <a href="https://github.com" target="_blank" class="link-item">📈 我的交易日志</a>
-            <a href="#" class="link-item">🧘‍♂️ 日常冥想与运动</a>
-            <a href="https://github.com" target="_blank" class="link-item">💻 我的 GitHub 主页</a>
+
+        <div class="menu-grid" id="menuGrid"></div>
+    </div>
+
+    <div class="side-panel">
+        <div class="panel-section" style="border-bottom: 2px solid #f0f0f0;">
+            <div class="section-header">🛒 当前台位明细</div>
+            <div class="list-box" id="cartList"></div>
+            <div class="cart-footer">
+                <div class="total-price">
+                    <span>应收金额:</span>
+                    <span>￥<span id="totalAmount">0</span></span>
+                </div>
+                <button class="checkout-btn" onclick="checkout()">确认结账并入账</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <div class="section-header">📋 历史账单流水记账簿 <button onclick="clearHistory()" style="float:right; font-size:12px; background:none; border:none; color:#ff4d4f; cursor:pointer;">清空流水</button></div>
+            <div class="list-box" id="historyList"></div>
         </div>
     </div>
 
+    <script>
+        // 核心数据库：尝试从本地浏览器缓存读取，如果没有，则默认给2个菜
+        let menuData = JSON.parse(localStorage.getItem('restaurant_menu')) || [
+            { id: 1, name: "招牌牛肉面", price: 28, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=300&q=80" },
+            { id: 2, name: "冰镇珍珠奶茶", price: 15, img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?auto=format&fit=crop&w=300&q=80" }
+        ];
+
+        let cart = [];
+        let historyLogs = JSON.parse(localStorage.getItem('restaurant_history')) || [];
+
+        // 1. 渲染菜品列表
+        function renderMenu() {
+            const grid = document.getElementById("menuGrid");
+            grid.innerHTML = menuData.map(food => `
+                <div class="food-card">
+                    <button class="delete-food-btn" onclick="deleteFood(${food.id})">X</button>
+                    <img src="${food.img}" class="food-img" alt="${food.name}">
+                    <div class="food-info">
+                        <p class="food-name">${food.name}</p>
+                        <p class="food-price">￥${food.price}</p>
+                        <button class="add-btn" onclick="addToCart(${food.id})">+ 放入账单</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 2. 网页直接导入图片和价格的核心逻辑
+        function addCustomFood() {
+            const name = document.getElementById("newFoodName").value.trim();
+            const price = parseFloat(document.getElementById("newFoodPrice").value);
+            const imgFile = document.getElementById("newFoodImg").files[0];
+
+            if (!name || isNaN(price)) {
+                alert("请输入完整的菜品名称和有效价格！");
+                return;
+            }
+
+            const newId = Date.now(); // 随机生成唯一ID
+            
+            // 魔法逻辑：如果上传了本地文件，用 FileReader 将其转为网页可读的长字符串；没传就用默认图
+            if (imgFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    menuData.push({ id: newId, name: name, price: price, img: e.target.result });
+                    saveAndRefreshMenu();
+                }
+                reader.readAsDataURL(imgFile);
+            } else {
+                menuData.push({ id: newId, name: name, price: price, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80" });
+                saveAndRefreshMenu();
+            }
+        }
+
+        function saveAndRefreshMenu() {
+            localStorage.setItem('restaurant_menu', JSON.stringify(menuData)); // 写入浏览器本地数据库
+            renderMenu();
+            // 清空输入框
+            document.getElementById("newFoodName").value = "";
+            document.getElementById("newFoodPrice").value = "";
+            document.getElementById("newFoodImg").value = "";
+        }
+
+        function deleteFood(id) {
+            menuData = menuData.filter(item => item.id !== id);
+            saveAndRefreshMenu();
+        }
+
+        // 3. 购物车加减逻辑
+        function addToCart(id) {
+            const food = menuData.find(item => item.id === id);
+            const cartItem = cart.find(item => item.id === id);
+            if (cartItem) { cartItem.count++; } else { cart.push({ ...food, count: 1 }); }
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartList = document.getElementById("cartList");
+            const totalAmount = document.getElementById("totalAmount");
+            cartList.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div><b>${item.name}</b> <span style="color:#888;">x${item.count}</span></div>
+                    <span style="color:#ff4d4f; font-weight:bold;">￥${item.price * item.count}</span>
+                </div>
+            `).join('');
+            let total = cart.reduce((sum, item) => sum + (item.price * item.count), 0);
+            totalAmount.innerText = total;
+        }
+
+        // 4. 确认结账并写入流水记账功能
+        function checkout() {
+            if (cart.length === 0) { alert("台位没有点餐，无法结账！"); return; }
+            let total = cart.reduce((sum, item) => sum + (item.price * item.count), 0);
+            const timeStr = new Date().toLocaleTimeString();
+
+            // 生成账单摘要
+            const summary = cart.map(item => `${item.name}(x${item.count})`).join(', ');
+
+            // 存入流水记录
+            historyLogs.unshift({ time: timeStr, details: summary, total: total });
+            localStorage.setItem('restaurant_history', JSON.stringify(historyLogs)); // 永久保存流水
+
+            alert(`💸 结账成功！本单流水已记录至记账簿。`);
+            cart = [];
+            renderCart();
+            renderHistory();
+        }
+
+        // 5. 渲染历史账单
+        function renderHistory() {
+            const historyList = document.getElementById("historyList");
+            historyList.innerHTML = historyLogs.map(log => `
+                <div class="history-item">
+                    <div>
+                        <div class="history-time">🕒 流水时间：${log.time}</div>
+                        <div style="color:#555; margin-top:2px;">${log.details}</div>
+                    </div>
+                    <span style="color:#52c41a; font-weight:bold;">+￥${log.total}</span>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            if(confirm("确定要清空所有记账流水吗？数据不可恢复！")) {
+                historyLogs = [];
+                localStorage.removeItem('restaurant_history');
+                renderHistory();
+            }
+        }
+
+        // 页面启动
+        renderMenu();
+        renderHistory();
+    </script>
 </body>
 </html>

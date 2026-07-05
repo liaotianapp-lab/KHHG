@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>赛博餐厅·智能收银记账系统</title>
+    <title>大米进销存收银记账系统</title>
     <style>
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f0f2f5;
+            background: #f4f6f9;
             color: #333;
             display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* 左侧主面板：包含添加菜品和菜品列表 */
+        /* 左侧主面板 */
         .main-panel {
             flex: 2;
             padding: 20px;
@@ -25,191 +25,303 @@
             gap: 20px;
         }
 
-        /* 动态添加菜品表单（后台管理） */
-        .admin-box {
-            background: #fff;
+        /* 顶部财务与销量看板 */
+        .dashboard-box {
+            background: white;
             padding: 20px;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .admin-box h3 { margin-top: 0; color: #1890ff; }
-        .form-inline { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .form-inline input, .form-inline button {
-            padding: 8px 12px;
-            border: 1px solid #d9d9d9;
-            border-radius: 8px;
-            outline: none;
-        }
-        .form-inline button {
-            background: #1890ff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .form-inline button:hover { background: #40a9ff; }
-
-        /* 菜品网格 */
-        .menu-grid {
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
         }
-        .food-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        .stat-card {
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
-            position: relative;
+            justify-content: center;
+        }
+        .bg-profit { background: linear-gradient(45deg, #11998e, #38ef7d); }
+        .bg-bags { background: linear-gradient(45deg, #f12711, #f5af19); }
+        .bg-sales { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+        
+        .stat-title { font-size: 13px; font-weight: 500; opacity: 0.9; }
+        .stat-amount { font-size: 22px; font-weight: bold; margin-top: 5px; }
+
+        .admin-title { margin: 0 0 15px 0; color: #1890ff; font-size: 16px; }
+        .form-inline { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .form-inline input, .form-inline button {
+            padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 8px; outline: none;
+        }
+        .form-inline button { background: #1890ff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .form-inline button:hover { background: #40a9ff; }
+
+        /* 🔍 搜索区域 */
+        .search-box { position: relative; width: 100%; }
+        .search-input {
+            width: 100%; box-sizing: border-box; padding: 12px 15px;
+            border: 1px solid #d9d9d9; border-radius: 10px; font-size: 15px; outline: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        /* 商品网格 */
+        .menu-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;
+        }
+        .food-card {
+            background: white; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative;
         }
         .food-img { width: 100%; height: 130px; object-fit: cover; background: #e8e8e8; }
         .food-info { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .food-name { font-size: 16px; font-weight: bold; margin: 0 0 5px 0; }
-        .food-price { color: #ff4d4f; font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+        .food-cost-profit { font-size: 11px; color: #888; margin: 0 0 8px 0; }
+        .food-price { color: #ff4d4f; font-size: 18px; font-weight: bold; margin-bottom: 10px; }
         .add-btn { background: #52c41a; color: white; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .delete-food-btn {
-            position: absolute; top: 5px; right: 5px;
-            background: rgba(255,77,79,0.9); color: white; border: none;
-            border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px;
+            position: absolute; top: 5px; right: 5px; background: rgba(255,77,79,0.9);
+            color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;
         }
 
-        /* 右侧收银和历史账单 */
+        /* 年度结余总账表 */
+        .yearly-box {
+            background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .yearly-table {
+            width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;
+        }
+        .yearly-table th, .yearly-table td {
+            border: 1px solid #f0f0f0; padding: 10px; text-align: center;
+        }
+        .yearly-table th { background: #fafafa; font-weight: bold; }
+        .yearly-table td.profit-pos { color: #52c41a; font-weight: bold; }
+
+        /* 右侧面板 */
         .side-panel {
-            flex: 1;
-            background: white;
-            border-left: 1px solid #e8e8e8;
-            display: flex;
-            flex-direction: column;
-            box-shadow: -4px 0 12px rgba(0,0,0,0.02);
+            flex: 1; background: white; border-left: 1px solid #e8e8e8; display: flex; flex-direction: column;
         }
         .panel-section { flex: 1; display: flex; flex-direction: column; min-height: 50%; }
-        .section-header { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; font-size: 18px; font-weight: bold; background: #fafafa; }
+        .section-header { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; font-size: 16px; font-weight: bold; background: #fafafa; }
         .list-box { flex: 1; padding: 15px 20px; overflow-y: auto; }
         
         .cart-item, .history-item {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #f0f0f0;
-            font-size: 14px;
+            margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #f0f0f0; font-size: 14px;
         }
-        .history-item { border-bottom: 1px solid #f0f0f0; font-size: 13px; }
-        .history-time { color: #888; font-size: 11px; }
+        .history-item { border-bottom: 1px solid #f0f0f0; font-size: 13px; flex-direction: column; align-items: flex-start; }
+        .history-row { display: flex; justify-content: space-between; width: 100%; margin-top: 4px;}
+        .history-time { color: #888; font-size: 11px; font-weight: bold; }
 
-        /* 计账尾部 */
         .cart-footer { padding: 15px 20px; border-top: 1px solid #f0f0f0; background: #fafafa; }
-        .total-price { font-size: 20px; font-weight: bold; color: #ff4d4f; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .total-price { font-size: 18px; font-weight: bold; color: #ff4d4f; margin-bottom: 10px; display: flex; justify-content: space-between; }
         .checkout-btn { width: 100%; background: #1890ff; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="main-panel">
-        <div class="admin-box">
-            <h3>⚙️ 餐厅后台管理（免代码添加/修改菜品）</h3>
+        
+        <div class="dashboard-box">
+            <div class="stats-grid">
+                <div class="stat-card bg-profit">
+                    <span class="stat-title">📈 <span id="currentMonthTitle">2026年--月</span>·月累计纯利</span>
+                    <span class="stat-amount"><span id="monthlyNetProfit">0</span> MMK</span>
+                </div>
+                <div class="stat-card bg-bags">
+                    <span class="stat-title">🌾 今日已售大米数量</span>
+                    <span class="stat-amount"><span id="dailyBagCount">0</span> 袋</span>
+                </div>
+                <div class="stat-card bg-sales">
+                    <span class="stat-title">💰 今日总销售营业额</span>
+                    <span class="stat-amount"><span id="dailyTotalSales">0</span> MMK</span>
+                </div>
+            </div>
+
+            <h4 class="admin-title">⚙️ 智能大米上架后台（输入本金与售价）</h4>
             <div class="form-inline">
-                <input type="text" id="newFoodName" placeholder="菜品名称 (例如: 黄金炒饭)">
-                <input type="number" id="newFoodPrice" placeholder="价格/元 (例如: 20)">
-                <label style="font-size: 14px; color: #666;">上传图片：</label>
-                <input type="file" id="newFoodImg" accept="image/*">
-                <button onclick="addCustomFood()">🚀 发布新菜品</button>
+                <input type="text" id="newFoodName" placeholder="商品名称 (如: 勃固香米)" style="width: 160px;">
+                <input type="number" id="newFoodCost" placeholder="进货本金/袋" style="width: 110px;">
+                <input type="number" id="newFoodPrice" placeholder="计划售价/袋" style="width: 110px;">
+                <label style="font-size: 13px; color: #666;">图片：</label>
+                <input type="file" id="newFoodImg" accept="image/*" style="width: 160px;">
+                <button onclick="addCustomFood()">🚀 上架商品</button>
             </div>
         </div>
 
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 输入商品名称，快速查找库存大米..." oninput="filterMenu()">
+        </div>
+
         <div class="menu-grid" id="menuGrid"></div>
+
+        <div class="yearly-box">
+            <h4 style="margin: 0 0 10px 0; color: #333;">📊 <span id="currentYearTitle">2026</span>年度·12个月月度利润总账簿</h4>
+            <table class="yearly-table">
+                <thead>
+                    <tr>
+                        <th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th><th>6月</th>
+                        <th>7月</th><th>8月</th><th>9月</th><th>10月</th><th>11月</th><th>12月</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="yearlyProfitRow">
+                        <td id="m1">0 MMK</td><td id="m2">0 MMK</td><td id="m3">0 MMK</td><td id="m4">0 MMK</td><td id="m5">0 MMK</td><td id="m6">0 MMK</td>
+                        <td id="m7">0 MMK</td><td id="m8">0 MMK</td><td id="m9">0 MMK</td><td id="m10">0 MMK</td><td id="m11">0 MMK</td><td id="m12">0 MMK</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="side-panel">
         <div class="panel-section" style="border-bottom: 2px solid #f0f0f0;">
-            <div class="section-header">🛒 当前台位明细</div>
+            <div class="section-header">🛒 当前出货明细清单</div>
             <div class="list-box" id="cartList"></div>
             <div class="cart-footer">
                 <div class="total-price">
-                    <span>应收金额:</span>
-                    <span>￥<span id="totalAmount">0</span></span>
+                    <span>合计金额:</span>
+                    <span><span id="totalAmount">0</span> MMK</span>
                 </div>
-                <button class="checkout-btn" onclick="checkout()">确认结账并入账</button>
+                <button class="checkout-btn" onclick="checkout()">打印账单并确认结账</button>
             </div>
         </div>
 
         <div class="panel-section">
-            <div class="section-header">📋 历史账单流水记账簿 <button onclick="clearHistory()" style="float:right; font-size:12px; background:none; border:none; color:#ff4d4f; cursor:pointer;">清空流水</button></div>
+            <div class="section-header">📋 历史出货流水账（仅内部可见） <button onclick="clearAllData()" style="float:right; font-size:12px; background:none; border:none; color:#ff4d4f; cursor:pointer;">清空系统数据</button></div>
             <div class="list-box" id="historyList"></div>
         </div>
     </div>
 
     <script>
-        // 核心数据库：尝试从本地浏览器缓存读取，如果没有，则默认给2个菜
-        let menuData = JSON.parse(localStorage.getItem('restaurant_menu')) || [
-            { id: 1, name: "招牌牛肉面", price: 28, img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=300&q=80" },
-            { id: 2, name: "冰镇珍珠奶茶", price: 15, img: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?auto=format&fit=crop&w=300&q=80" }
+        // 初始化大米默认数据
+        let menuData = JSON.parse(localStorage.getItem('rice_menu')) || [
+            { id: 1, name: "高端茉莉香米 (50KG)", cost: 45000, price: 65000, img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80" },
+            { id: 2, name: "珍珠糯米 (25KG)", cost: 25000, price: 38000, img: "https://images.unsplash.com/photo-1536304997881-a372c179924b?auto=format&fit=crop&w=300&q=80" }
         ];
 
         let cart = [];
-        let historyLogs = JSON.parse(localStorage.getItem('restaurant_history')) || [];
+        let historyLogs = JSON.parse(localStorage.getItem('rice_history')) || [];
+        
+        // 12个月度账本
+        let yearlyReport = JSON.parse(localStorage.getItem('rice_yearly_report')) || {
+            "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0,
+            "7": 0, "8": 0, "9": 0, "10": 0, "11": 0, "12": 0
+        };
 
-        // 1. 渲染菜品列表
-        function renderMenu() {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        const todayDateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+        // 1. 渲染大米商品列表
+        function renderMenu(data = menuData) {
             const grid = document.getElementById("menuGrid");
-            grid.innerHTML = menuData.map(food => `
-                <div class="food-card">
-                    <button class="delete-food-btn" onclick="deleteFood(${food.id})">X</button>
-                    <img src="${food.img}" class="food-img" alt="${food.name}">
-                    <div class="food-info">
-                        <p class="food-name">${food.name}</p>
-                        <p class="food-price">￥${food.price}</p>
-                        <button class="add-btn" onclick="addToCart(${food.id})">+ 放入账单</button>
+            grid.innerHTML = data.map(rice => {
+                const singleProfit = rice.price - rice.cost;
+                return `
+                    <div class="food-card">
+                        <button class="delete-food-btn" onclick="deleteFood(${rice.id})">X</button>
+                        <img src="${rice.img}" class="food-img">
+                        <div class="food-info">
+                            <p class="food-name">${rice.name}</p>
+                            <p class="food-cost-profit">本金: ${rice.cost} | 每袋纯利: +${singleProfit}</p>
+                            <p class="food-price">${rice.price} MMK</p>
+                            <button class="add-btn" onclick="addToCart(${rice.id})">+ 放入出货单</button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+            
+            // 刷新面板时间、月度纯利
+            document.getElementById("currentMonthTitle").innerText = `${currentYear}年${currentMonth}月`;
+            document.getElementById("currentYearTitle").innerText = currentYear;
+            document.getElementById("monthlyNetProfit").innerText = yearlyReport[currentMonth].toLocaleString();
+            
+            calculateDailyStats();
+            renderYearlyTable();
         }
 
-        // 2. 网页直接导入图片和价格的核心逻辑
+        // 计算当日卖出袋数和当日总销售额
+        function calculateDailyStats() {
+            let todayBags = 0;
+            let todayRevenue = 0;
+
+            historyLogs.forEach(log => {
+                if (log.datetime.startsWith(todayDateStr)) {
+                    todayBags += log.totalBags || 0;
+                    todayRevenue += log.total || 0;
+                }
+            });
+
+            document.getElementById("dailyBagCount").innerText = todayBags;
+            document.getElementById("dailyTotalSales").innerText = todayRevenue.toLocaleString();
+        }
+
+        function renderYearlyTable() {
+            for(let i = 1; i <= 12; i++) {
+                const td = document.getElementById(`m${i}`);
+                if(td) {
+                    td.innerText = `${yearlyReport[i].toLocaleString()} MMK`;
+                    if (yearlyReport[i] > 0) td.className = "profit-pos";
+                }
+            }
+        }
+
+        // 2. 商品搜索
+        function filterMenu() {
+            const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+            const filtered = menuData.filter(rice => rice.name.toLowerCase().includes(keyword));
+            renderMenu(filtered);
+        }
+
+        // 3. 上架新大米
         function addCustomFood() {
             const name = document.getElementById("newFoodName").value.trim();
+            const cost = parseFloat(document.getElementById("newFoodCost").value);
             const price = parseFloat(document.getElementById("newFoodPrice").value);
             const imgFile = document.getElementById("newFoodImg").files[0];
 
-            if (!name || isNaN(price)) {
-                alert("请输入完整的菜品名称和有效价格！");
+            if (!name || isNaN(cost) || isNaN(price)) {
+                alert("请完整填写商品名称、进货本金和计划售价！");
                 return;
             }
 
-            const newId = Date.now(); // 随机生成唯一ID
-            
-            // 魔法逻辑：如果上传了本地文件，用 FileReader 将其转为网页可读的长字符串；没传就用默认图
+            const newId = Date.now();
+            const handleSave = (imgUrl) => {
+                menuData.push({ id: newId, name: name, cost: cost, price: price, img: imgUrl });
+                localStorage.setItem('rice_menu', JSON.stringify(menuData));
+                renderMenu();
+                document.getElementById("newFoodName").value = "";
+                document.getElementById("newFoodCost").value = "";
+                document.getElementById("newFoodPrice").value = "";
+                document.getElementById("newFoodImg").value = "";
+            };
+
             if (imgFile) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    menuData.push({ id: newId, name: name, price: price, img: e.target.result });
-                    saveAndRefreshMenu();
-                }
+                reader.onload = function(e) { handleSave(e.target.result); }
                 reader.readAsDataURL(imgFile);
             } else {
-                menuData.push({ id: newId, name: name, price: price, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80" });
-                saveAndRefreshMenu();
+                handleSave("https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=300&q=80");
             }
-        }
-
-        function saveAndRefreshMenu() {
-            localStorage.setItem('restaurant_menu', JSON.stringify(menuData)); // 写入浏览器本地数据库
-            renderMenu();
-            // 清空输入框
-            document.getElementById("newFoodName").value = "";
-            document.getElementById("newFoodPrice").value = "";
-            document.getElementById("newFoodImg").value = "";
         }
 
         function deleteFood(id) {
             menuData = menuData.filter(item => item.id !== id);
-            saveAndRefreshMenu();
+            localStorage.setItem('rice_menu', JSON.stringify(menuData));
+            renderMenu();
         }
 
-        // 3. 购物车加减逻辑
+        // 4. 出货单控制
         function addToCart(id) {
-            const food = menuData.find(item => item.id === id);
+            const rice = menuData.find(item => item.id === id);
             const cartItem = cart.find(item => item.id === id);
-            if (cartItem) { cartItem.count++; } else { cart.push({ ...food, count: 1 }); }
+            if (cartItem) { cartItem.count++; } else { cart.push({ ...rice, count: 1 }); }
             renderCart();
         }
 
@@ -218,58 +330,86 @@
             const totalAmount = document.getElementById("totalAmount");
             cartList.innerHTML = cart.map(item => `
                 <div class="cart-item">
-                    <div><b>${item.name}</b> <span style="color:#888;">x${item.count}</span></div>
-                    <span style="color:#ff4d4f; font-weight:bold;">￥${item.price * item.count}</span>
+                    <div><b>${item.name}</b> <span style="color:#888;">x${item.count}袋</span></div>
+                    <span style="color:#ff4d4f; font-weight:bold;">${(item.price * item.count).toLocaleString()} MMK</span>
                 </div>
             `).join('');
             let total = cart.reduce((sum, item) => sum + (item.price * item.count), 0);
-            totalAmount.innerText = total;
+            totalAmount.innerText = total.toLocaleString();
         }
 
-        // 4. 确认结账并写入流水记账功能
+        // 5. 结账并打印小票
         function checkout() {
-            if (cart.length === 0) { alert("台位没有点餐，无法结账！"); return; }
-            let total = cart.reduce((sum, item) => sum + (item.price * item.count), 0);
-            const timeStr = new Date().toLocaleTimeString();
+            if (cart.length === 0) { alert("出货单为空，无法结账！"); return; }
+            
+            let totalRevenue = cart.reduce((sum, item) => sum + (item.price * item.count), 0);
+            let totalCost = cart.reduce((sum, item) => sum + (item.cost * item.count), 0);
+            let totalBagsInOrder = cart.reduce((sum, item) => sum + item.count, 0);
+            let currentOrderProfit = totalRevenue - totalCost; 
 
-            // 生成账单摘要
-            const summary = cart.map(item => `${item.name}(x${item.count})`).join(', ');
+            // 💰 动态把利润累加进当前真实月份
+            const runTime = new Date();
+            const runMonth = runTime.getMonth() + 1;
+            yearlyReport[runMonth] += currentOrderProfit;
+            localStorage.setItem('rice_yearly_report', JSON.stringify(yearlyReport));
 
-            // 存入流水记录
-            historyLogs.unshift({ time: timeStr, details: summary, total: total });
-            localStorage.setItem('restaurant_history', JSON.stringify(historyLogs)); // 永久保存流水
+            const dateStr = `${runTime.getFullYear()}-${String(runTime.getMonth()+1).padStart(2,'0')}-${String(runTime.getDate()).padStart(2,'0')}`;
+            const timeStr = runTime.toTimeString().split(' ')[0];
+            const fullDateTime = `${dateStr} ${timeStr}`;
 
-            alert(`💸 结账成功！本单流水已记录至记账簿。`);
+            // 📃 大米出货小票清单
+            let receiptItems = cart.map(item => `${item.name} x${item.count}袋\n    ...... ${(item.price * item.count).toLocaleString()} MMK`).join('\n');
+            let invoiceReceipt = `
+================================
+         🧾 结算小票清单       
+================================
+出货时间: ${fullDateTime}
+--------------------------------
+${receiptItems}
+--------------------------------
+应收总计: ${totalRevenue.toLocaleString()} MMK
+
+感谢您的支持与信任！
+================================`;
+            
+            alert(invoiceReceipt);
+
+            // 存入内部历史流水
+            const summary = cart.map(item => `${item.name}(x${item.count}袋)`).join(', ');
+            historyLogs.unshift({ datetime: fullDateTime, details: summary, total: totalRevenue, profit: currentOrderProfit, totalBags: totalBagsInOrder });
+            localStorage.setItem('rice_history', JSON.stringify(historyLogs));
+
             cart = [];
             renderCart();
-            renderHistory();
+            renderMenu(); 
+            renderHistory(); // 🛠️ 关键修复：在这里加上历史记录立即刷新！
         }
 
-        // 5. 渲染历史账单
+        // 6. 渲染流水明细
         function renderHistory() {
             const historyList = document.getElementById("historyList");
             historyList.innerHTML = historyLogs.map(log => `
                 <div class="history-item">
-                    <div>
-                        <div class="history-time">🕒 流水时间：${log.time}</div>
-                        <div style="color:#555; margin-top:2px;">${log.details}</div>
+                    <span class="history-time">🕒 流水时间：${log.datetime}</span>
+                    <div style="color:#555; margin: 4px 0; font-size:13px;">${log.details}</div>
+                    <div class="history-row">
+                        <span style="color:#000;">营业额: <b style="color:#ff4d4f;">${log.total.toLocaleString()} MMK</b></span>
+                        <span style="color:#52c41a;">净利润: <b>+${log.profit.toLocaleString()} MMK</b></span>
                     </div>
-                    <span style="color:#52c41a; font-weight:bold;">+￥${log.total}</span>
                 </div>
             `).join('');
         }
 
-        function clearHistory() {
-            if(confirm("确定要清空所有记账流水吗？数据不可恢复！")) {
-                historyLogs = [];
-                localStorage.removeItem('restaurant_history');
-                renderHistory();
+        function clearAllData() {
+            if(confirm("确定要初始化大米账本系统吗？所有数据将全部清空！")) {
+                localStorage.clear();
+                location.reload();
             }
         }
 
         // 页面启动
         renderMenu();
-        renderHistory();
+        renderHistory(); // 🛠️ 关键修复：初始加载也要渲染流水！
     </script>
 </body>
 </html>
